@@ -57,6 +57,42 @@ describe('createStore', () => {
     expect(listener).toHaveBeenCalledTimes(3);
   });
 
+  it('rename trims the title and notifies', () => {
+    const store = createStore();
+    const todo = store.add('old');
+    const listener = vi.fn();
+    store.subscribe(listener);
+
+    store.rename(todo.id, '  new title  ');
+
+    expect(store.getTodos()[0].title).toBe('new title');
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('rename ignores a whitespace-only title and does not notify', () => {
+    const store = createStore();
+    const todo = store.add('keep me');
+    const listener = vi.fn();
+    store.subscribe(listener);
+
+    store.rename(todo.id, '   ');
+
+    expect(store.getTodos()[0].title).toBe('keep me');
+    expect(listener).not.toHaveBeenCalled();
+  });
+
+  it('rename ignores an unknown id and does not notify', () => {
+    const store = createStore();
+    const todo = store.add('keep me');
+    const listener = vi.fn();
+    store.subscribe(listener);
+
+    store.rename('nope', 'new');
+
+    expect(store.getTodos()[0]).toEqual(todo);
+    expect(listener).not.toHaveBeenCalled();
+  });
+
   it('unknown-id toggle/remove change nothing and do not notify', () => {
     const store = createStore();
     const todo = store.add('a');
