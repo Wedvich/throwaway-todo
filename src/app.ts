@@ -23,6 +23,29 @@ export function mountApp(root: HTMLElement, store: TodoStore): void {
   }
   root.appendChild(nav);
 
+  const form = document.createElement('form');
+  form.className = 'todo-form';
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.name = 'title';
+
+  const submit = document.createElement('button');
+  submit.type = 'submit';
+  submit.textContent = 'Add';
+
+  form.append(input, submit);
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const title = input.value.trim();
+    if (!title) {
+      return;
+    }
+    store.add(title);
+    input.value = '';
+  });
+  root.appendChild(form);
+
   const list = document.createElement('ul');
   list.className = 'todo-list';
   root.appendChild(list);
