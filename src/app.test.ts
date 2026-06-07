@@ -199,4 +199,81 @@ describe('mountApp', () => {
       root.querySelector(`ul.todo-list li[data-id="${b.id}"]`),
     ).toBeNull();
   });
+
+  it('renders all todos by default with the "all" filter selected', () => {
+    const store = createStore();
+    store.add('buy milk');
+    const done = store.add('walk dog');
+    store.toggle(done.id);
+
+    mountApp(root, store);
+
+    expect(root.querySelectorAll('ul.todo-list li')).toHaveLength(2);
+    const all = root.querySelector('nav.filters button[data-filter="all"]');
+    expect(all?.classList.contains('selected')).toBe(true);
+  });
+
+  it('the active filter hides completed todos', () => {
+    const store = createStore();
+    const a = store.add('buy milk');
+    const done = store.add('walk dog');
+    store.toggle(done.id);
+
+    mountApp(root, store);
+
+    const active = root.querySelector<HTMLButtonElement>(
+      'nav.filters button[data-filter="active"]',
+    );
+    active?.click();
+
+    const items = root.querySelectorAll<HTMLLIElement>('ul.todo-list li');
+    expect(items).toHaveLength(1);
+    expect(items[0].dataset.id).toBe(a.id);
+  });
+
+  it('the completed filter shows only completed todos', () => {
+    const store = createStore();
+    store.add('buy milk');
+    const done = store.add('walk dog');
+    store.toggle(done.id);
+
+    mountApp(root, store);
+
+    const completed = root.querySelector<HTMLButtonElement>(
+      'nav.filters button[data-filter="completed"]',
+    );
+    completed?.click();
+
+    const items = root.querySelectorAll<HTMLLIElement>('ul.todo-list li');
+    expect(items).toHaveLength(1);
+    expect(items[0].dataset.id).toBe(done.id);
+  });
+
+  it('the selected class follows the clicked button', () => {
+    const store = createStore();
+    store.add('buy milk');
+
+    mountApp(root, store);
+
+    const all = root.querySelector<HTMLButtonElement>(
+      'nav.filters button[data-filter="all"]',
+    );
+    const active = root.querySelector<HTMLButtonElement>(
+      'nav.filters button[data-filter="active"]',
+    );
+    const completed = root.querySelector<HTMLButtonElement>(
+      'nav.filters button[data-filter="completed"]',
+    );
+
+    expect(all?.classList.contains('selected')).toBe(true);
+
+    active?.click();
+    expect(active?.classList.contains('selected')).toBe(true);
+    expect(all?.classList.contains('selected')).toBe(false);
+    expect(completed?.classList.contains('selected')).toBe(false);
+
+    completed?.click();
+    expect(completed?.classList.contains('selected')).toBe(true);
+    expect(active?.classList.contains('selected')).toBe(false);
+  });
 });
