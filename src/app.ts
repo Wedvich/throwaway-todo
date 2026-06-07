@@ -13,7 +13,26 @@ export function mountApp(root: HTMLElement, store: TodoStore): void {
       if (todo.completed) {
         item.classList.add('completed');
       }
-      item.textContent = todo.title;
+
+      const toggle = document.createElement('input');
+      toggle.type = 'checkbox';
+      toggle.className = 'toggle';
+      toggle.checked = todo.completed;
+      toggle.addEventListener('change', () => {
+        store.toggle(todo.id);
+      });
+
+      const label = document.createElement('span');
+      label.className = 'title';
+      label.textContent = todo.title;
+
+      const destroy = document.createElement('button');
+      destroy.className = 'destroy';
+      destroy.addEventListener('click', () => {
+        store.remove(todo.id);
+      });
+
+      item.append(toggle, label, destroy);
       list.appendChild(item);
     }
   }
