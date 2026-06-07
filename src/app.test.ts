@@ -273,6 +273,58 @@ describe('mountApp', () => {
     expect(root.querySelector('.clear-completed')).toBeNull();
   });
 
+  it('submitting the form appends a todo with the typed title and clears the input', () => {
+    const store = createStore();
+    mountApp(root, store);
+
+    const form = root.querySelector<HTMLFormElement>('form.todo-form');
+    const input = form?.querySelector<HTMLInputElement>('input[name="title"]');
+    expect(form).not.toBeNull();
+    expect(input).not.toBeNull();
+
+    if (input) {
+      input.value = 'buy milk';
+    }
+    form?.dispatchEvent(new Event('submit', { cancelable: true }));
+
+    const items = root.querySelectorAll<HTMLLIElement>('ul.todo-list li');
+    expect(items).toHaveLength(1);
+    expect(items[0].textContent).toBe('buy milk');
+    expect(store.getTodos().map((t) => t.title)).toEqual(['buy milk']);
+    expect(input?.value).toBe('');
+  });
+
+  it('the submit event is cancelled to prevent navigation', () => {
+    const store = createStore();
+    mountApp(root, store);
+
+    const form = root.querySelector<HTMLFormElement>('form.todo-form');
+    const input = form?.querySelector<HTMLInputElement>('input[name="title"]');
+    if (input) {
+      input.value = 'buy milk';
+    }
+
+    const event = new Event('submit', { cancelable: true });
+    form?.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it('submitting a whitespace-only title leaves the list and store unchanged', () => {
+    const store = createStore();
+    mountApp(root, store);
+
+    const form = root.querySelector<HTMLFormElement>('form.todo-form');
+    const input = form?.querySelector<HTMLInputElement>('input[name="title"]');
+    if (input) {
+      input.value = '   ';
+    }
+    form?.dispatchEvent(new Event('submit', { cancelable: true }));
+
+    expect(root.querySelectorAll('ul.todo-list li')).toHaveLength(0);
+    expect(store.getTodos()).toHaveLength(0);
+  });
+
   it('renders all todos by default with the "all" filter selected', () => {
     const store = createStore();
     store.add('buy milk');
