@@ -12,6 +12,7 @@ export type TodoStore = {
   toggle(id: string): void;
   remove(id: string): void;
   rename(id: string, title: string): void;
+  clearCompleted(): void;
   subscribe(listener: () => void): () => void;
 };
 
@@ -69,6 +70,14 @@ export function createStore(): TodoStore {
         return;
       }
       todos = todos.map((t) => (t.id === id ? { ...t, title: trimmed } : t));
+      notify();
+    },
+
+    clearCompleted(): void {
+      if (!todos.some((t) => t.completed)) {
+        return;
+      }
+      todos = todos.filter((t) => !t.completed);
       notify();
     },
 

@@ -27,6 +27,22 @@ export function mountApp(root: HTMLElement, store: TodoStore): void {
   list.className = 'todo-list';
   root.appendChild(list);
 
+  const footer = document.createElement('footer');
+  footer.className = 'footer';
+
+  const count = document.createElement('span');
+  count.className = 'todo-count';
+
+  const clearCompleted = document.createElement('button');
+  clearCompleted.className = 'clear-completed';
+  clearCompleted.textContent = 'Clear completed';
+  clearCompleted.addEventListener('click', () => {
+    store.clearCompleted();
+  });
+
+  footer.append(count, clearCompleted);
+  root.appendChild(footer);
+
   function visibleTodos(): readonly Todo[] {
     const todos = store.getTodos();
     if (filter === 'active') {
@@ -41,6 +57,16 @@ export function mountApp(root: HTMLElement, store: TodoStore): void {
   function render(): void {
     for (const [value, button] of buttons) {
       button.classList.toggle('selected', value === filter);
+    }
+
+    const todos = store.getTodos();
+    const remaining = todos.filter((todo) => !todo.completed).length;
+    count.textContent = `${remaining} ${remaining === 1 ? 'item' : 'items'} left`;
+
+    if (todos.some((todo) => todo.completed)) {
+      footer.appendChild(clearCompleted);
+    } else {
+      clearCompleted.remove();
     }
 
     list.replaceChildren();

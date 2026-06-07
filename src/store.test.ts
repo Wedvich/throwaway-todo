@@ -93,6 +93,37 @@ describe('createStore', () => {
     expect(listener).not.toHaveBeenCalled();
   });
 
+  it('clearCompleted removes only completed todos and notifies once', () => {
+    const store = createStore();
+    const a = store.add('keep');
+    const b = store.add('done');
+    const c = store.add('also done');
+    store.toggle(b.id);
+    store.toggle(c.id);
+
+    const listener = vi.fn();
+    store.subscribe(listener);
+
+    store.clearCompleted();
+
+    expect(store.getTodos().map((t) => t.id)).toEqual([a.id]);
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('clearCompleted does nothing and does not notify when nothing is completed', () => {
+    const store = createStore();
+    store.add('a');
+    store.add('b');
+    const listener = vi.fn();
+    store.subscribe(listener);
+
+    const before = store.getTodos();
+    store.clearCompleted();
+
+    expect(store.getTodos()).toEqual(before);
+    expect(listener).not.toHaveBeenCalled();
+  });
+
   it('unknown-id toggle/remove change nothing and do not notify', () => {
     const store = createStore();
     const todo = store.add('a');
