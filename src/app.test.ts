@@ -200,6 +200,79 @@ describe('mountApp', () => {
     ).toBeNull();
   });
 
+  it('shows "0 items left" for an empty store', () => {
+    const store = createStore();
+    mountApp(root, store);
+
+    const count = root.querySelector('.todo-count');
+    expect(count?.textContent).toBe('0 items left');
+  });
+
+  it('shows "1 item left" (singular) for a single active todo', () => {
+    const store = createStore();
+    store.add('buy milk');
+    mountApp(root, store);
+
+    const count = root.querySelector('.todo-count');
+    expect(count?.textContent).toBe('1 item left');
+  });
+
+  it('counts only non-completed todos for several remaining', () => {
+    const store = createStore();
+    store.add('a');
+    store.add('b');
+    const done = store.add('c');
+    store.toggle(done.id);
+    mountApp(root, store);
+
+    const count = root.querySelector('.todo-count');
+    expect(count?.textContent).toBe('2 items left');
+  });
+
+  it('updates the counter after a toggle', () => {
+    const store = createStore();
+    store.add('a');
+    store.add('b');
+    mountApp(root, store);
+
+    expect(root.querySelector('.todo-count')?.textContent).toBe('2 items left');
+
+    const toggle = root.querySelector<HTMLInputElement>('ul.todo-list li input.toggle');
+    if (toggle) {
+      toggle.checked = true;
+      toggle.dispatchEvent(new Event('change'));
+    }
+
+    expect(root.querySelector('.todo-count')?.textContent).toBe('1 item left');
+  });
+
+  it('does not render the clear-completed button when nothing is completed', () => {
+    const store = createStore();
+    store.add('a');
+    store.add('b');
+    mountApp(root, store);
+
+    expect(root.querySelector('.clear-completed')).toBeNull();
+  });
+
+  it('clear-completed removes only completed todos', () => {
+    const store = createStore();
+    const a = store.add('keep');
+    const b = store.add('done');
+    store.toggle(b.id);
+    mountApp(root, store);
+
+    const clear = root.querySelector<HTMLButtonElement>('.clear-completed');
+    expect(clear).not.toBeNull();
+    clear?.click();
+
+    const items = root.querySelectorAll<HTMLLIElement>('ul.todo-list li');
+    expect(items).toHaveLength(1);
+    expect(items[0].dataset.id).toBe(a.id);
+    expect(store.getTodos().map((t) => t.id)).toEqual([a.id]);
+    expect(root.querySelector('.clear-completed')).toBeNull();
+  });
+
   it('renders all todos by default with the "all" filter selected', () => {
     const store = createStore();
     store.add('buy milk');
