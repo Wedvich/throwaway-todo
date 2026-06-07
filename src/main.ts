@@ -1,5 +1,9 @@
-const app = document.querySelector<HTMLDivElement>('#app');
+import { mountApp } from './app.js';
+import { createTodoStore } from './store.js';
+
+const app = document.querySelector<HTMLElement>('#app');
 
 if (app) {
-  app.innerHTML = '<h1>throwaway-todo</h1>';
+  const store = createTodoStore();
+  mountApp(app, store);
 }
