@@ -11,6 +11,7 @@ export type TodoStore = {
   add(title: string): Todo;
   toggle(id: string): void;
   remove(id: string): void;
+  rename(id: string, title: string): void;
   subscribe(listener: () => void): () => void;
 };
 
@@ -56,6 +57,18 @@ export function createStore(): TodoStore {
         return;
       }
       todos = todos.filter((t) => t.id !== id);
+      notify();
+    },
+
+    rename(id: string, title: string): void {
+      const trimmed = title.trim();
+      if (!trimmed) {
+        return;
+      }
+      if (!todos.some((t) => t.id === id)) {
+        return;
+      }
+      todos = todos.map((t) => (t.id === id ? { ...t, title: trimmed } : t));
       notify();
     },
 

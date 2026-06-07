@@ -25,6 +25,28 @@ export function mountApp(root: HTMLElement, store: TodoStore): void {
       const label = document.createElement('span');
       label.className = 'title';
       label.textContent = todo.title;
+      label.addEventListener('dblclick', () => {
+        const edit = document.createElement('input');
+        edit.type = 'text';
+        edit.className = 'edit';
+        edit.value = todo.title;
+
+        function commit(): void {
+          store.rename(todo.id, edit.value);
+          render();
+        }
+
+        edit.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter') {
+            commit();
+          } else if (event.key === 'Escape') {
+            render();
+          }
+        });
+
+        label.replaceWith(edit);
+        edit.focus();
+      });
 
       const destroy = document.createElement('button');
       destroy.className = 'destroy';

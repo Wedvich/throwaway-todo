@@ -94,6 +94,85 @@ describe('mountApp', () => {
     ).toBe(false);
   });
 
+  it('double-clicking a title shows a prefilled edit input', () => {
+    const store = createStore();
+    store.add('buy milk');
+
+    mountApp(root, store);
+
+    const label = root.querySelector<HTMLSpanElement>('ul.todo-list li .title');
+    label?.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+
+    const edit = root.querySelector<HTMLInputElement>('ul.todo-list li input.edit');
+    expect(edit).not.toBeNull();
+    expect(edit?.value).toBe('buy milk');
+    expect(root.querySelector('ul.todo-list li .title')).toBeNull();
+  });
+
+  it('pressing Enter commits the new title to store and DOM', () => {
+    const store = createStore();
+    const todo = store.add('buy milk');
+
+    mountApp(root, store);
+
+    const label = root.querySelector<HTMLSpanElement>('ul.todo-list li .title');
+    label?.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+
+    const edit = root.querySelector<HTMLInputElement>('ul.todo-list li input.edit');
+    if (edit) {
+      edit.value = 'buy oat milk';
+      edit.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    }
+
+    expect(store.getTodos()[0].title).toBe('buy oat milk');
+    const title = root.querySelector('ul.todo-list li .title');
+    expect(title?.textContent).toBe('buy oat milk');
+    expect(root.querySelector('ul.todo-list li input.edit')).toBeNull();
+    expect(todo.id).toBe(store.getTodos()[0].id);
+  });
+
+  it('pressing Escape restores the original title without touching the store', () => {
+    const store = createStore();
+    store.add('buy milk');
+
+    mountApp(root, store);
+
+    const label = root.querySelector<HTMLSpanElement>('ul.todo-list li .title');
+    label?.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+
+    const edit = root.querySelector<HTMLInputElement>('ul.todo-list li input.edit');
+    if (edit) {
+      edit.value = 'something else';
+      edit.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    }
+
+    expect(store.getTodos()[0].title).toBe('buy milk');
+    const title = root.querySelector('ul.todo-list li .title');
+    expect(title?.textContent).toBe('buy milk');
+    expect(root.querySelector('ul.todo-list li input.edit')).toBeNull();
+  });
+
+  it('committing a whitespace-only title leaves the todo unchanged', () => {
+    const store = createStore();
+    store.add('buy milk');
+
+    mountApp(root, store);
+
+    const label = root.querySelector<HTMLSpanElement>('ul.todo-list li .title');
+    label?.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+
+    const edit = root.querySelector<HTMLInputElement>('ul.todo-list li input.edit');
+    if (edit) {
+      edit.value = '   ';
+      edit.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    }
+
+    expect(store.getTodos()[0].title).toBe('buy milk');
+    const title = root.querySelector('ul.todo-list li .title');
+    expect(title?.textContent).toBe('buy milk');
+    expect(root.querySelector('ul.todo-list li input.edit')).toBeNull();
+  });
+
   it('clicking destroy removes exactly that <li> and leaves the others untouched', () => {
     const store = createStore();
     const a = store.add('buy milk');
